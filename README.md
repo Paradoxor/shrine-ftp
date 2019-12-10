@@ -8,15 +8,17 @@ know how to set up storage in the first place.
 ```
 require "shrine"
 require "shrine/storage/file_system"
-require "shrine-ftp"
+# require ftp storage type
+require "shrine/storage/ftp" 
 
 storage = Shrine::Storage::Ftp.new(
     host: 'ftp.yourhost.com',
     user: 'ftp_user',
-    passwd: 'ftp_password',
-    dir: 'your/path/to/files',
-    prefix: 'http://cdn.yourhost.com'
+    password: 'ftp_password',
+    dir: 'projectx',
+    prefix: 'https://poly-amorie.com'
 )
+# https://poly-amorie.com/projectx/users/d1ba5412-0ba3-4a1d-a8ae-1ed7d765085f/verifyimage/1875822c36d6b0c52639f230bf5bf75b.jpeg
 
 Shrine.storages = {
     cache: Shrine::Storage::FileSystem.new('public', prefix: 'uploads/cache'),

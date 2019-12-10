@@ -15,7 +15,7 @@ class Shrine
     #   storage = Shrine::Storage::Ftp.new(
     #     host: "ftp.hosturl.com",
     #     user: "username",
-    #     passwd: "yourpassword",
+    #     password: "yourpassword",
     #     dir: "path/to/upload/files/to"
     #   )
     #
@@ -54,7 +54,16 @@ class Shrine
         path_and_file = build_path_and_file(io)
         ftp = Net::FTP.open(@host, @user, @passwd)
         change_or_create_directory(ftp)
-        ftp.putbinaryfile(path_and_file, id)
+        file_path = id.split("/")
+        file_name = file_path.pop
+
+        # there is a file structure included
+        if file_path.length > 1
+          file_path.each do |d|
+            change_or_create_directory(ftp, d)
+          end
+        end
+        ftp.putbinaryfile(path_and_file, file_name)
       end
 
       # Returns the URL of where the file is assumed to be, based on `prefix`
@@ -77,13 +86,18 @@ class Shrine
 
       # Deletes the file via FTP.
       def delete(id)
-        if exists?(id)
-          ftp = Net::FTP.open(@host, @user, @passwd)
-          change_or_create_directory(ftp)
-          ftp.delete(id)
-          return true
+        begin
+          if exists?(id)
+            ftp = Net::FTP.open(@host, @user, @passwd)
+            change_or_create_directory(ftp)
+            ftp.delete(id)
+            return true
+          end
+          return false
+        rescue => exception
+          # file did not exists
+          puts exception
         end
-        return false
       end
 
       def to_s
@@ -100,12 +114,12 @@ class Shrine
         end
       end
 
-      def change_or_create_directory(ftp)
+      def change_or_create_directory(ftp, dir = @dir)
         begin
-          ftp.chdir(@dir)
+          ftp.chdir(dir)
         rescue Net::FTPPermError
-          ftp.mkdir(@dir)
-          ftp.chdir(@dir)
+          ftp.mkdir(dir)
+          ftp.chdir(dir)
         end
       end
     end
